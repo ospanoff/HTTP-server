@@ -1,0 +1,16 @@
+# ospanoff (c) // CMC MSU // 2014
+
+This project is semestral task on C++;
+Here is the realization of the Web-Server with cgi-bin, and script-lang;
+
+Files & folders:
+	lib/http_ans.cpp[.h] - realization of communication with web-browser
+	lib/sock_creat.cpp[.h] - connecting client and server
+	server.cpp - main program; realization of multiconnection and connects all parts of server
+	root/ - root dir of server to which client can accept
+
+	tmp/ - testing folder (won't be in final version)
+	.git* - git files & folders
+	s - executable server file (Sintax: ./s port)
+
+Server enables communication with browser: answers to popular requests of browsers, does cgi programs and supports script-lang
