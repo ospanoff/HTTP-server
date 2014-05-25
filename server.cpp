@@ -1,7 +1,6 @@
 #include <set>
 #include <map>
 #include <algorithm>
-#include <csignal>
 // #include <fcntl.h>
 
 #include "lib/sock_create.h"
@@ -72,14 +71,14 @@ int main(int argc, char **argv)
 			FD_SET(*i, &fd_s);
 		}
 		max_fd = max(listener, *max_element(clients.begin(), clients.end()));
+		
 		sigprocmask (SIG_BLOCK, &sigmask, 0);
-
 		if (select(max_fd+1, &fd_s, NULL, NULL, NULL) <= 0) {
 			perror("select");
 			exit(1);
 		}
-		// endof
 		sigprocmask (SIG_UNBLOCK, &sigmask, 0);
+		// endof
 
 		// connecting and reading data
 		if (FD_ISSET(listener, &fd_s)) { // if new client, accepting
@@ -107,7 +106,6 @@ int main(int argc, char **argv)
 						break;
 				} else { // if we recieved inf
 					// cout << buf;
-					// cout << inet_ntoa(cl_addr[*i].sin_addr) << ' ' << ntohs(cl_addr[*i].sin_port);
 					answer_client(*i, buf, cl_addr[*i]);
 				}
 			}
