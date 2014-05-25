@@ -3,19 +3,23 @@
 #include <string>
 #include <unistd.h>
 #include <csignal>
-#include "Interpreter/Interpreter.h"
 
 using namespace std;
 
 class Script_parser
 {
-	char *f_name;
-	char *p_name;
-	fstream in;
-	fstream prog;
+	bool is_omjs; // Is file OMJS(ospanoff's model JS) file?
+	char *inf_name; // Input file name
+	char *f_name; // Output file name
+	char *p_name; // Output file for program code
+	fstream inp; // input stream: from inf_name
+	fstream outp; // output stream: to f_name
+	fstream prog; // output stream: to p_name
 public:
 	Script_parser(const char *);
 	~Script_parser();
 
+	void setFlag();
 	void pars();
+	void execute_program();
 };

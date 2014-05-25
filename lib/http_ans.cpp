@@ -1,6 +1,6 @@
 #include "http_ans.h"
 
-#define SERVER "ospanoff/1.4"
+#define SERVER "ospanoff/1.5"
 #define PROTOCOL "HTTP/1.1"
 #define TIME_FW "%a, %d %b %Y %H:%M:%S GMT"
 #define ROOT_PATH "./root"
@@ -54,7 +54,7 @@ const char *get_mime_type(const char *name)
 	if (!ext) return NULL;
 	if (strcmp(ext, ".html") == 0 || strcmp(ext, ".htm") == 0) return "text/html";
 	if (strcmp(ext, ".txt") == 0) return "text/plain";
-	if (strcmp(ext, ".mjs") == 0) return "text/mjs";
+	if (strcmp(ext, ".omjs") == 0) return "text/omjs";
 	if (strcmp(ext, ".jpg") == 0 || strcmp(ext, ".jpeg") == 0) return "image/jpeg";
 	if (strcmp(ext, ".gif") == 0) return "image/gif";
 	if (strcmp(ext, ".png") == 0) return "image/png";
@@ -93,30 +93,32 @@ void send_file(int f, char *path, struct stat *statbuf)
 	bool isScript(false);
 	memset(data, 0, sizeof(data));
 
-	const char *m_type = get_mime_type(path);
-	if (!strcmp(m_type,"text/html") || !strcmp(m_type,"text/plain") || !strcmp(m_type,"text/mjs")) {
+	const char *m_type = get_mime_type(path); // mime type
+	if (!strcmp(m_type,"text/html") || !strcmp(m_type,"text/plain") || !strcmp(m_type,"text/omjs")) {
 		isScript = true;
 		Script_parser parser(path);
+		if (!strcmp(m_type,"text/omjs")) // if omjs, set omjs flag to true
+			parser.setFlag();
 		parser.pars();
 		strcat(path, EXTEN);
 		stat(path, statbuf);
 	}
 
-	FILE *file = fopen(path, "rb");
-	if (!file) {
+	FILE *file = fopen(path, "rb"); // open for reading in bin mode
+	if (!file) { // if can't open
 		perror("fopen");
 		send_error(f, 403, "Forbidden", NULL, "Access denied.");
 	} else {
-		int length = S_ISREG(statbuf->st_mode) ? statbuf->st_size : -1;
-		make_header(f, 200, "OK", NULL, m_type, length, statbuf->st_mtime);
+		int length = S_ISREG(statbuf->st_mode) ? statbuf->st_size : -1; // size of file
+		make_header(f, 200, "OK", NULL, get_mime_type(path), length, statbuf->st_mtime);
 		while ((n = fread(data, 1, sizeof(data), file)) > 0) { // sending file
-			if (send(f, data, n, 0) != n) {
+			if (send(f, data, n, 0) != n) { // if can't send all parts
 				perror("send");
 			}
 		}
 	}
 	fclose(file);
-	if (isScript)
+	if (isScript) // if we executed script, delete secondary output file
 		remove(path);
 }
 
@@ -191,6 +193,7 @@ void do_cgi(int f, char *path, char *command, struct sockaddr_in cl_addr)
 		send_file(f, out, &statbuf);
 		exit(0); // zombie killed! =)
 	}
+	remove(out);
 }
 
 int answer_client(int f, char *inf, struct sockaddr_in cl_addr)
@@ -242,10 +245,10 @@ int answer_client(int f, char *inf, struct sockaddr_in cl_addr)
 		}
 	
 	} else { // if it is file
-		if (!strncmp(uri, "/cgi-bin", 8))
+		if (!strncmp(uri, "/cgi-bin", 8)) // if we try to run executable file
 			do_cgi(f, path, command, cl_addr);
 		else {
-			send_file(f, path, &statbuf);
+			send_file(f, path, &statbuf); // or just send file
 		}
 	}
 

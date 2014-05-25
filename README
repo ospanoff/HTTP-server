@@ -10,8 +10,7 @@ Files & folders:
 	server.cpp - main program; realization of multiconnection and connects all parts of server
 	root/ - root dir of server to which client can accept
 
-	tmp/ - testing folder (won't be in final version)
 	.git* - git files & folders
-	s - executable server file (Syntax: ./s port)
+	server - executable server file (Syntax: ./server port)
 
 Server enables communication with browser: answers to popular requests of browsers, does cgi programs and supports script-lang

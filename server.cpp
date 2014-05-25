@@ -1,3 +1,8 @@
+// Server @ version 1.5, name .ospanoff
+// copyright (c) .ospanoff
+// Ayat ".ospanoff" Ospanov
+// CMC, KB MSU, 2013 - 2014
+
 #include <set>
 #include <map>
 #include <algorithm>
@@ -95,7 +100,7 @@ int main(int argc, char **argv)
 		for (set<int>::iterator i = clients.begin(); i != clients.end(); i++) {
 			if (FD_ISSET(*i, &fd_s)) { // looking for ready client
 				char buf[1024];
-				memset(buf, 0, bytes_read);
+				// memset(buf, 0, bytes_read);
 				bytes_read = recv(*i, buf, sizeof(buf), 0); //buf.size();
 				
 				if (bytes_read == 0) { // if client closed sock
