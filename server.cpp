@@ -1,4 +1,4 @@
-// Server @ version 1.5, name .ospanoff
+// Server @ version 1.6, name .ospanoff
 // copyright (c) .ospanoff
 // Ayat ".ospanoff" Ospanov
 // CMC, KB MSU, 2013 - 2014

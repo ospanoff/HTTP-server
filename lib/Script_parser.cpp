@@ -30,9 +30,9 @@ Script_parser::~Script_parser()
 	delete [] p_name;
 }
 
-void Script_parser::setFlag()
+void Script_parser::setFlag(bool b)
 {
-	is_omjs = true;
+	is_omjs = b;
 }
 
 void Script_parser::pars()

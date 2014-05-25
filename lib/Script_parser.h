@@ -19,7 +19,7 @@ public:
 	Script_parser(const char *);
 	~Script_parser();
 
-	void setFlag();
+	void setFlag(bool);
 	void pars();
 	void execute_program();
 };

@@ -1,6 +1,6 @@
 #include "http_ans.h"
 
-#define SERVER "ospanoff/1.5"
+#define SERVER "ospanoff/1.6"
 #define PROTOCOL "HTTP/1.1"
 #define TIME_FW "%a, %d %b %Y %H:%M:%S GMT"
 #define ROOT_PATH "./root"
@@ -89,6 +89,9 @@ void send_error(int f, int status, const char *title, const char *extra, const c
 void send_file(int f, char *path, struct stat *statbuf)
 {
 	char data[1024];
+	char *bu_path = new char [strlen(path)+1];
+	strcpy(bu_path, path);
+
 	int n;
 	bool isScript(false);
 	memset(data, 0, sizeof(data));
@@ -98,7 +101,9 @@ void send_file(int f, char *path, struct stat *statbuf)
 		isScript = true;
 		Script_parser parser(path);
 		if (!strcmp(m_type,"text/omjs")) // if omjs, set omjs flag to true
-			parser.setFlag();
+			parser.setFlag(true);
+		else
+			parser.setFlag(false);
 		parser.pars();
 		strcat(path, EXTEN);
 		stat(path, statbuf);
@@ -120,6 +125,8 @@ void send_file(int f, char *path, struct stat *statbuf)
 	fclose(file);
 	if (isScript) // if we executed script, delete secondary output file
 		remove(path);
+	if (!strncmp(path, "./root/cgi-bin/", 15))
+		remove(bu_path);
 }
 
 char **make_env(char *command, struct sockaddr_in cl_addr)
@@ -191,9 +198,9 @@ void do_cgi(int f, char *path, char *command, struct sockaddr_in cl_addr)
 			perror("stat");
 
 		send_file(f, out, &statbuf);
+
 		exit(0); // zombie killed! =)
 	}
-	remove(out);
 }
 
 int answer_client(int f, char *inf, struct sockaddr_in cl_addr)
@@ -245,9 +252,9 @@ int answer_client(int f, char *inf, struct sockaddr_in cl_addr)
 		}
 	
 	} else { // if it is file
-		if (!strncmp(uri, "/cgi-bin", 8)) // if we try to run executable file
+		if (!strncmp(uri, "/cgi-bin", 8)) { // if we try to run executable file
 			do_cgi(f, path, command, cl_addr);
-		else {
+		} else {
 			send_file(f, path, &statbuf); // or just send file
 		}
 	}
