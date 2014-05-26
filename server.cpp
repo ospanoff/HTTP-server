@@ -110,8 +110,8 @@ int main(int argc, char **argv)
 					if (clients.size() == 0)
 						break;
 				} else { // if we recieved inf
-					cout << buf;
-					fflush(stdout);
+					// cout << buf;
+					// fflush(stdout);
 					answer_client(*i, buf, cl_addr[*i]);
 					memset(buf, 0, 1024);
 				}

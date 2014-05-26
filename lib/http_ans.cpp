@@ -6,7 +6,7 @@
 #define ROOT_PATH "./root"
 #define EXTEN ".html" // extension for cgi program output
 
-void make_header(int f, int status, const char *title, const char *extra, const char *mime, int length, time_t date)
+void make_header(int f, int status, const char *title, const char *extra, const char *mime, long length, time_t date)
 {
 	time_t now;
 	char timebuf[128];
@@ -33,7 +33,7 @@ void make_header(int f, int status, const char *title, const char *extra, const 
 		send(f, buf, strlen(buf), 0);
 	}
 	if (length >= 0) {
-		sprintf(buf, "Content-Length: %d\r\n", length);
+		sprintf(buf, "Content-Length: %ld\r\n", length);
 		send(f, buf, strlen(buf), 0);
 	}
 	if (date != -1) {
@@ -70,7 +70,7 @@ const char *get_mime_type(const char *name)
 void send_error(int f, int status, const char *title, const char *extra, const char *text)
 {
 	char buf[1024];
-	int size = 2 * strlen(title) + strlen(text) + 79;
+	long size = 2 * strlen(title) + strlen(text) + 79;
 	memset(buf, 0, sizeof(buf));
 	make_header(f, status, title, extra, "text/html", size, -1);
 	sprintf(buf, "<HTML><HEAD><TITLE>%d %s</TITLE></HEAD>\r\n", status, title);
@@ -92,7 +92,7 @@ void send_file(int f, char *path, struct stat *statbuf)
 	char *bu_path = new char [strlen(path)+1];
 	strcpy(bu_path, path);
 
-	int n;
+	long n;
 	bool isScript(false);
 	memset(data, 0, sizeof(data));
 
@@ -114,7 +114,7 @@ void send_file(int f, char *path, struct stat *statbuf)
 		perror("fopen");
 		send_error(f, 403, "Forbidden", NULL, "Access denied.");
 	} else {
-		int length = S_ISREG(statbuf->st_mode) ? statbuf->st_size : -1; // size of file
+		long length = S_ISREG(statbuf->st_mode) ? statbuf->st_size : -1; // size of file
 		make_header(f, 200, "OK", NULL, get_mime_type(path), length, statbuf->st_mtime);
 		while ((n = fread(data, 1, sizeof(data), file)) > 0) { // sending file
 			if (send(f, data, n, 0) != n) { // if can't send all parts
@@ -240,7 +240,6 @@ void pars_post(int f, char *post_msg)
 	sprintf(s, "%s", post_msg);
 	urldecode2(post_msg, s);
 
-	cout << post_msg+8 << endl;
 	if (!strncmp(post_msg, "program=", 8)) {
 		post_msg += 8;
 		char ss[] = "./_tmp_prog.omjs";
@@ -268,15 +267,13 @@ int answer_client(int f, char *inf, struct sockaddr_in cl_addr)
 	struct stat statbuf;
 	char *buf;
 	char path[1024];
-	int len;
+	long len;
 
 	if (inf[strlen(inf)-4] == '\r') inf[strlen(inf)-4] = 0; // if no msg body from client (not POST)
 	tmp_pm = strrchr(inf, '\n'); // prev line was done for doing this
 	tmp_pm++; // delete '\n'
 	post_msg = new char [strlen(tmp_pm) + 1];
 	sprintf(post_msg, "%s", tmp_pm);
-
-	cout << endl << "PM: " << post_msg << endl;
 
 	buf = strtok(inf, "\r\n"); // cutting first line
 

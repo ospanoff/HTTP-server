@@ -14,7 +14,7 @@
 
 using namespace std;
 
-void make_header(int f, int status, const char *title, const char *extra, const char *mime, int length, time_t date);
+void make_header(int f, int status, const char *title, const char *extra, const char *mime, long length, time_t date);
 const char *get_mime_type(const char *name);
 void send_error(int f, int status, const char *title, const char *extra, const char *text);
 char *pars_script(int f, const char *path, struct stat *statbuf);
