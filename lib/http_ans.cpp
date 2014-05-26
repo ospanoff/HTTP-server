@@ -1,6 +1,6 @@
 #include "http_ans.h"
 
-#define SERVER "ospanoff/1.6"
+#define SERVER "ospanoff/2.0"
 #define PROTOCOL "HTTP/1.1"
 #define TIME_FW "%a, %d %b %Y %H:%M:%S GMT"
 #define ROOT_PATH "./root"
@@ -203,20 +203,80 @@ void do_cgi(int f, char *path, char *command, struct sockaddr_in cl_addr)
 	}
 }
 
+void urldecode2(char *dst, const char *src)
+{
+	char a, b;
+	while (*src) {
+		if ((*src == '%') &&
+			((a = src[1]) && (b = src[2])) &&
+			(isxdigit(a) && isxdigit(b))) {
+			if (a >= 'a')
+					a -= 'a'-'A';
+			if (a >= 'A')
+					a -= ('A' - 10);
+			else
+					a -= '0';
+			if (b >= 'a')
+					b -= 'a'-'A';
+			if (b >= 'A')
+					b -= ('A' - 10);
+			else
+					b -= '0';
+			*dst++ = 16*a+b;
+			src+=3;
+		} else if (*src == '+') {
+			*dst++ = ' ';
+			src++;
+		} else {
+			*dst++ = *src++;
+		}
+	}
+	*dst++ = '\0';
+}
+
+void pars_post(int f, char *post_msg)
+{
+	char *s = new char [strlen(post_msg)];
+	sprintf(s, "%s", post_msg);
+	urldecode2(post_msg, s);
+
+	cout << post_msg+8 << endl;
+	if (!strncmp(post_msg, "program=", 8)) {
+		post_msg += 8;
+		char ss[] = "./_tmp_prog.omjs";
+		sprintf(s, "%s", ss);
+		fstream file(ss, ifstream::out);
+		file << post_msg;
+		file.close();
+		struct stat statbuf;
+		stat(ss, &statbuf);
+		send_file(f, ss, &statbuf);
+		remove(s);
+	} else {
+		make_header(f, 200, "OK", NULL, "text/html", strlen(post_msg), -1);
+		send(f, post_msg, strlen(post_msg), 0);
+	}
+}
+
 int answer_client(int f, char *inf, struct sockaddr_in cl_addr)
 {
 	char *method;
 	char *uri;
 	char *protocol;
 	char *post_msg;
+	char *tmp_pm;
 	struct stat statbuf;
 	char *buf;
 	char path[1024];
 	int len;
 
 	if (inf[strlen(inf)-4] == '\r') inf[strlen(inf)-4] = 0; // if no msg body from client (not POST)
-	post_msg = strrchr(inf, '\n'); // prev line was done for doing this
-	post_msg++; // delete '\n'
+	tmp_pm = strrchr(inf, '\n'); // prev line was done for doing this
+	tmp_pm++; // delete '\n'
+	post_msg = new char [strlen(tmp_pm) + 1];
+	sprintf(post_msg, "%s", tmp_pm);
+
+	cout << endl << "PM: " << post_msg << endl;
 
 	buf = strtok(inf, "\r\n"); // cutting first line
 
@@ -230,9 +290,9 @@ int answer_client(int f, char *inf, struct sockaddr_in cl_addr)
 	char *command = strtok(NULL, "\0");
 	
 	if (!strcmp(method, "POST")) { // if post, just send request
-		make_header(f, 200, "OK", NULL, "text/html", strlen(post_msg), -1);
-		send(f, post_msg, strlen(post_msg), 0);
-	
+		pars_post(f, post_msg);
+		delete [] post_msg;
+
 	} else if (strcmp(method, "GET") && strcmp(method, "HEAD")) // if not GET or not HEAD send error
 		send_error(f, 501, "Not supported", "Allow: GET, HEAD", "Method is not supported.");
 	
@@ -258,6 +318,5 @@ int answer_client(int f, char *inf, struct sockaddr_in cl_addr)
 			send_file(f, path, &statbuf); // or just send file
 		}
 	}
-
 	return 0;
 }

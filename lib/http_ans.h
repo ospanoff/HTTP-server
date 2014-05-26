@@ -2,8 +2,7 @@
 #include <ctime>
 #include <cstring>
 #include <cstdlib>
-#include <stdlib.h>
-#include <stdio.h>
+#include <cstdio>
 #include <sys/stat.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -11,7 +10,6 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <csignal>
-
 #include "Script_parser.h"
 
 using namespace std;
@@ -23,4 +21,6 @@ char *pars_script(int f, const char *path, struct stat *statbuf);
 void send_file(int f, char *path, struct stat *statbuf);
 char **make_env(char *command, struct sockaddr_in cl_addr);
 void do_cgi(int f, char *path, char *command, struct sockaddr_in cl_addr);
+void urldecode2(char *dst, const char *src);
+void pars_post(int f, char *post_msg);
 int answer_client(int f, char *buf, struct sockaddr_in cl_addr);

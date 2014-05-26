@@ -1,4 +1,4 @@
-// Server @ version 1.6, name .ospanoff
+// Server @ version 2.0, name .ospanoff
 // copyright (c) .ospanoff
 // Ayat ".ospanoff" Ospanov
 // CMC, KB MSU, 2013 - 2014
@@ -110,8 +110,10 @@ int main(int argc, char **argv)
 					if (clients.size() == 0)
 						break;
 				} else { // if we recieved inf
-					// cout << buf;
+					cout << buf;
+					fflush(stdout);
 					answer_client(*i, buf, cl_addr[*i]);
+					memset(buf, 0, 1024);
 				}
 			}
 		}
